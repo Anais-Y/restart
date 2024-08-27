@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="0813-deap-noshuf",
+    project="0824-deap-noshuf",
     # track hyperparameters and run metadata
     config=vars(args)
 )
