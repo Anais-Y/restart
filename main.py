@@ -4,13 +4,13 @@ import configparser
 import tqdm
 import matplotlib.pyplot as plt
 from torch import nn
-from model_gat import MultiBandDataset, FusionModel, train, evaluate
+from model_gat_seed import MultiBandDataset, FusionModel, train, evaluate
 from torch_geometric.data import DataLoader
-from Effect_Att.utils import *
+from utils_de import *
 from torch.optim.lr_scheduler import StepLR
 
-DATASET = 'DEAP'
-config_file = f'./configs/{DATASET}/s01.conf'
+DATASET = 'SEED'
+config_file = f'./configs/{DATASET}/1.conf'
 config = configparser.ConfigParser()
 config.read(config_file)
 parser = argparse.ArgumentParser(description='arguments')
@@ -79,7 +79,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if wait >= args.patience:
         log_string(log_file, f'early stop at epoch: {epoch:04d}')
         break
-    training_loss = train(model, tr_loader, optimizer, criterion, device, args.max_grad_norm)
+    training_loss = train(model, tr_loader, optimizer, scheduler, criterion, device, max_grad=args.max_grad_norm)
     train_acc, train_f1, tr_loss = evaluate(model, tr_loader, criterion, device)
     test_acc, test_f1, te_loss = evaluate(model, te_loader, criterion, device)
     infos = f'Epoch {epoch + 1}, Train Acc: {train_acc:.2f}, Train F1: {train_f1:.2f}, ' \

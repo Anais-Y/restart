@@ -1,8 +1,8 @@
 import argparse
 import os
-from model_gat import MultiBandDataset, FusionModel, train, evaluate
+from model_gat_seed import MultiBandDataset, FusionModel, train, evaluate
 from torch_geometric.data import DataLoader
-from Effect_Att.utils import *
+from utils_de import *
 import torch
 import random
 import wandb
@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="0824-deap-noshuf",
+    project="0827-seed-deASgraph",
     # track hyperparameters and run metadata
     config=vars(args)
 )
