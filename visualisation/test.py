@@ -11,11 +11,11 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.append(parent_dir)
-from Effect_Att.utils import *
+from utils_de import *
 from torch.optim.lr_scheduler import StepLR
 
-DATASET = 'DEAP'
-config_file = f'../configs/{DATASET}/s01.conf'
+DATASET = 'SEED'
+config_file = f'./1.conf'
 config = configparser.ConfigParser()
 config.read(config_file)
 parser = argparse.ArgumentParser(description='arguments')
@@ -65,7 +65,7 @@ te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
-ckpt = torch.load('/home/micro/Anaiis/anti_overfit/garage/DEAP/s01/exp_0_0.05_best_model.pth')
+ckpt = torch.load('/data/Anaiis/garage/SEED_noshuf/exp_38_0.0_best_model.pth')
 model.load_state_dict(ckpt['state_dict'], strict=False)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)

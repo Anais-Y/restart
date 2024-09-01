@@ -60,7 +60,7 @@ parser.add_argument('--patience', type=int, default=config['train']['patience'],
 parser.add_argument('--print_every', type=int, default=config['train']['print_every'], help="训练代数")
 parser.add_argument('--lr_decay_every', type=int, default=config['train']['lr_decay_every'], help="lr decay every xx epochs")
 parser.add_argument('--save', type=str, default=config['train']['save'], help='保存路径')
-parser.add_argument('--expid', type=int, default=config['train']['expid'], help='实验 id')
+parser.add_argument('--expid', type=str, default=config['train']['expid'], help='实验 id')
 parser.add_argument('--desc', type=str, default=config['train']['description'], help='实验说明')
 parser.add_argument('--max_grad_norm', type=float, default=config['train']['max_grad_norm'], help="梯度阈值")
 parser.add_argument('--log_file', default=config['train']['log_file'], help='log file')
@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="0827-seed-deASgraph",
+    project="0901-seed-noshuf-adamw256",
     # track hyperparameters and run metadata
     config=vars(args)
 )
@@ -87,7 +87,7 @@ device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
 model_parameters_init(model)  # init parameters of model
-optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
+optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
 criterion = nn.CrossEntropyLoss()
 scheduler = StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay_rate)
 
@@ -123,14 +123,14 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if te_loss <= te_loss_min:
         info1 = f'val loss decrease from {te_loss_min:.4f} to {te_loss:.4f}, ' \
                 f'save model to ' \
-                f'{args.save + "exp_" + str(args.expid) + "_" + str(round(te_loss, 2)) + "_best_model.pth"} '
+                f'{args.save + "exp_" + args.expid + "_" + str(round(te_loss, 2)) + "_best_model.pth"} '
         log_string(log_file, info1)
         print(info1)
         wait = 0  # 在这里把wait清零
         te_loss_min = te_loss
         state = {'state_dict': model.state_dict(), 'hyperparams': vars(args)}
         torch.save(state,
-                   args.save + "exp_" + str(args.expid) + "_" + str(round(te_loss_min, 2)) + "_best_model.pth")
+                   args.save + "exp_" + args.expid + "_" + str(round(te_loss_min, 2)) + "_best_model.pth")
     else:
         wait += 1
     wandb.log({

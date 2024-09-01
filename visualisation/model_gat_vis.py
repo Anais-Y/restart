@@ -23,14 +23,14 @@ class GAT(nn.Module):
         # 第一层GAT卷积
         # x = F.dropout(x, p=0.6, training=self.training)
         x = self.bn1(x)
-        x = self.conv1(x, edge_index)
+        x, _tuple = self.conv1(x, edge_index, return_attention_weights=True)
         x = F.relu(x)
 
         # 第二层GAT卷积
         # x = F.dropout(x, p=0.6, training=self.training)
         x = self.bn2(x)
-        x, _tuple = self.conv2(x, edge_index, return_attention_weights=True)
-        x = F.elu(x)
+        x = self.conv2(x, edge_index)
+        x = F.gelu(x)
 
         # x = self.conv3(x, edge_index)
         # 全局平均池化
@@ -52,30 +52,34 @@ class FusionModel(nn.Module):
                              dropout_disac=dropout_disac, num_classes=num_classes)
         self.GAT_gamma = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
                              dropout_disac=dropout_disac, num_classes=num_classes)
+        self.GAT_de = GAT(num_node_features=5, hidden_dim=hidden_dim, num_heads=num_heads,
+                             dropout_disac=dropout_disac, num_classes=num_classes)
         self.attn_weight = None
         self.edge_index = None
         self.x_feature = None
+
         self.dataset = dataset
         if self.dataset == "DEAP":
             self.fusion = nn.Linear(4 * num_classes, num_classes, bias=True)
         elif self.dataset == "SEED":
-            self.fusion = nn.Linear(5 * num_classes, num_classes, bias=True)
+            self.fusion = nn.Linear(6 * num_classes, num_classes, bias=True)
         else:
             raise ValueError("Please give a dataset")
         nn.init.kaiming_uniform_(self.fusion.weight, nonlinearity='relu')
 
     def forward(self, data):
-        x_alpha, _tuple = self.GAT_alpha(data['alpha'])
-        self.attn_weight = _tuple[1]
-        self.edge_index = _tuple[0]
+        x_alpha, _ = self.GAT_alpha(data['alpha'])
         x_beta, _ = self.GAT_beta(data['beta'])
-        x_gamma, _ = self.GAT_theta(data['theta'])
-        x_theta, _ = self.GAT_gamma(data['gamma'])
+        x_theta, _ = self.GAT_theta(data['theta'])
+        x_gamma, _tuple = self.GAT_gamma(data['gamma'])
         if self.dataset == "DEAP":
             x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta), dim=1)
         elif self.dataset == "SEED":
-            x_delta = self.GAT_delta(data['delta'])
-            x_concat = torch.cat((x_delta, x_alpha, x_beta, x_gamma, x_theta), dim=1)
+            x_delta, _ = self.GAT_delta(data['delta'])
+            x_de, _ = self.GAT_de(data['de'])
+            self.attn_weight = _tuple[1]
+            self.edge_index = _tuple[0]
+            x_concat = torch.cat((x_delta, x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
         else:
             print('[Attention]!!!')
             x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta), dim=1)
@@ -131,13 +135,16 @@ def evaluate(model, data_loader, criterion, device):
             testing_data = {key: value.to(device) for key, value in testing_data.items() if key != 'label'}
             outputs = model(testing_data)
             # print(outputs, model.attn_weight)
-            torch.save(model.attn_weight, f'./vis_data/attn_weight_{i}.pt')
-            torch.save(model.edge_index, f'./vis_data/edge_index_{i}.pt')
-            torch.save(labels, f'./vis_data/labels_{i}.pt')
+            # torch.save(model.attn_weight, f'/data/Anaiis/garage/vis_data/7_20131030/attn_weight_l1gamma_{i}.pt')
+            # torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/7_20131030/edge_index_l1gamma_{i}.pt')
+            # # torch.save(labels, f'/data/Anaiis/garage/vis_data/7_20131030/labels_{i}.pt')
+            # if labels != torch.load(f'/data/Anaiis/garage/vis_data/7_20131030/labels_{i}.pt').item():
+            #     print("attn!")
             loss = criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
             all_preds.extend(predicted.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
+        print("total samples:", i)
     
     # print(all_preds, all_labels)
     acc["all"] = np.sum(np.array(all_preds)==np.array(all_labels))/len(all_labels)
