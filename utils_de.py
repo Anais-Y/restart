@@ -60,7 +60,7 @@ def construct_graphs(dataset_dir, dataset, w_len, strides):
     all_samples = np.load(os.path.join(dataset_dir + 'data.npy'))
     label = np.load(os.path.join(dataset_dir + 'label.npy'))
     de_feat = np.load(os.path.join(dataset_dir + 'de.npy'))
-    # print(de_feat.shape)  # 3394, 62, 5
+    # print(de_feat.shape)  # 3394, 62, 5 vs 3200, 32, 4
     constructed = {'label': [], 'de': []}
     edge_index_template = [[i, j] for i in range(strides * channels) for j in range(strides * channels) if i != j]
     edge_index_template = torch.tensor(edge_index_template, dtype=torch.long).t().contiguous()
@@ -74,7 +74,7 @@ def construct_graphs(dataset_dir, dataset, w_len, strides):
             if len(lab) == 1:
                 if band == 'alpha':
                     constructed['label'].append(lab[0])
-                    constructed['de'].append(de_sample)
+                    # constructed['de'].append(de_sample)
                 
                 de_node_features = de_sample.reshape((-1, de_sample.shape[-1]))  # 将 de_sample 转为 2D
                 de_node_features = torch.tensor(de_node_features, dtype=torch.float)

@@ -65,7 +65,7 @@ te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
-ckpt = torch.load('/data/Anaiis/garage/SEED_noshuf/exp_38_0.0_best_model.pth')
+ckpt = torch.load('/data/Anaiis/garage/SEED_noshuf/exp_18-0904_0.0_best_model.pth')
 model.load_state_dict(ckpt['state_dict'], strict=False)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)

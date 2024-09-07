@@ -244,18 +244,19 @@ def generate_train_val_test_shuffle(seperated, labels, save_folder):
 if __name__ == '__main__':
     # for filename in os.listdir('../GELM/data_preprocessed_matlab/'):
     # for filename in os.listdir('./data/data_preprocessed_matlab/'):
-    dta = np.load('../Effect_Att/Data/len_96/False/s01/de.npy')
-    abel = np.load('../Effect_Att/Data/len_96/False/s01/label.npy')
-    print(dta.shape, abel.shape)
-    file_path = f'../Dataset/DEAP/data_preprocessed_matlab/s01.mat'
-    raw_data, new_label = load_data_label(file_path)
-    filtered = filter_data(raw_data)  # (40, 32, 8064, 4)
-    baseline = compute_baselineDE(filtered)
-    # window_num = 9  # 需被T整除
-    features = compute_features_96(filtered, baseline)  # (40, 80, 32, 4)
-    print(features.shape)
-    feat = features.reshape((-1, 32, 4))
-    np.save('../Effect_Att/Data/len_96/False/s01/de.npy', feat)
+    # dta = np.load('../Effect_Att/Data/len_96/False/s01/de.npy')
+    # abel = np.load('../Effect_Att/Data/len_96/False/s01/label.npy')
+    # print(dta.shape, abel.shape)
+    file_path = f'/home/micro/Anaiis/Dataset/DEAP/data_preprocessed_matlab/'
+    for filename in os.listdir(file_path):
+        raw_data, new_label = load_data_label(os.path.join(file_path, filename))
+        filtered = filter_data(raw_data)  # (40, 32, 8064, 4)
+        baseline = compute_baselineDE(filtered)
+        # window_num = 9  # 需被T整除
+        features = compute_features_96(filtered, baseline)  # (40, 80, 32, 4)
+        print(features.shape)
+        feat = features.reshape((-1, 32, 4))
+        np.save(f'/data/Anaiis/Data/DEAP/{filename[:3]}/de.npy', feat)
     # features_LDS = filterLDS(features)
     # seperated, labels = seperate(features, 9, new_label)
     # labels = np.repeat(new_label, 80, axis=0)

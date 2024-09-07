@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="0901-seed-noshuf-adamw256",
+    project="0904-seed_shuf",
     # track hyperparameters and run metadata
     config=vars(args)
 )
@@ -87,7 +87,7 @@ device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
 model_parameters_init(model)  # init parameters of model
-optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
 criterion = nn.CrossEntropyLoss()
 scheduler = StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay_rate)
 
