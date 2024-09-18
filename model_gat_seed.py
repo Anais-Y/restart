@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import BatchNorm1d
-from torch_geometric.nn import GATConv, global_mean_pool
+from torch_geometric.nn import GATConv, global_mean_pool, TopKPooling
 from torch_geometric.data import Dataset, DataLoader
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, f1_score
@@ -16,6 +16,9 @@ class GAT(nn.Module):
         # self.conv3 = GATConv(hidden_dim * num_heads, num_classes, heads=1, concat=False, dropout=dropout_disac)
         self.bn1 = BatchNorm1d(num_node_features)
         self.bn2 = BatchNorm1d(hidden_dim * num_heads)
+        # 使用TopKPooling，保留50%节点
+        self.pool1 = TopKPooling(hidden_dim * num_heads, ratio=0.5)
+        self.pool2 = TopKPooling(num_classes, ratio=0.5)
 
     def forward(self, band_data):
         x, edge_index, batch = band_data.x, band_data.edge_index, band_data.batch
@@ -26,12 +29,15 @@ class GAT(nn.Module):
         x = self.conv1(x, edge_index)
         x = F.relu(x)
 
+        x, edge_index, _, batch, _, _ = self.pool1(x, edge_index, batch=batch)
+
         # 第二层GAT卷积
         # x = F.dropout(x, p=0.6, training=self.training)
         x = self.bn2(x)
         x = self.conv2(x, edge_index)
         x = F.gelu(x)
 
+        x, edge_index, _, batch, _, _ = self.pool2(x, edge_index, batch=batch)
         # x = self.conv3(x, edge_index)
         # 全局平均池化
         x = global_mean_pool(x, batch)

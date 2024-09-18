@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="0904-seed_shuf",
+    project="0916-seed-gridsearch",
     # track hyperparameters and run metadata
     config=vars(args)
 )
@@ -77,7 +77,7 @@ if not os.path.exists(args.save):
     os.makedirs(args.save)
 init_seed(args.seed)  # 确保实验结果可以复现
 constructed = construct_graphs(args.data, args.dataset, args.window_length, args.strides)
-constructed_train, constructed_test = split_data(constructed, test_ratio=0.2, random_flag=False)
+constructed_train, constructed_test = split_data(constructed, test_ratio=0.4, random_flag=False)
 train_set = MultiBandDataset(constructed_train)
 tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
 test_set = MultiBandDataset(constructed_test)

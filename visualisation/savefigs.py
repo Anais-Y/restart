@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 bands = ['gamma', 'theta', 'beta', 'alpha', 'de']
-person = "15_20131105"
+person = "6_20131113"
 dataset = "seed"
 for band in bands:
     for n in range(225):

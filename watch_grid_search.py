@@ -1,19 +1,38 @@
 import argparse
-import time
-import configparser
-import tqdm
-import matplotlib.pyplot as plt
-from torch import nn
+import os
 from model_gat_seed import MultiBandDataset, FusionModel, train, evaluate
-from torch_geometric.loader import DataLoader
+from torch_geometric.data import DataLoader
 from utils_de import *
+import torch
+import random
+import wandb
+import tqdm
+import configparser
 from torch.optim.lr_scheduler import StepLR
 
-DATASET = 'SEED'
-config_file = f'./configs/{DATASET}/iv.conf'
-config = configparser.ConfigParser()
-config.read(config_file)
-parser = argparse.ArgumentParser(description='arguments')
+# config_file = 'configs/DEAP/s01.conf'
+# start a new wandb run to track this script
+def parse_conf_file(filepath):
+    # 创建配置解析器
+    config = configparser.ConfigParser()
+
+    # 读取配置文件
+    config.read(filepath)
+
+    # 将配置项转换为字典
+    config_dict = {section: dict(config.items(section)) for section in config.sections()}
+    return config_dict
+
+
+parser = argparse.ArgumentParser(description="Process a configuration file.")
+parser.add_argument("--config_file", help="Path to the configuration file")
+args, remaining_argv = parser.parse_known_args()
+# Load configuration from file
+if args.config_file:
+    config = parse_conf_file(args.config_file)
+else:
+    config = {}
+# parser = argparse.ArgumentParser(description='arguments')
 parser.add_argument('--data', type=str, default=config['data']['data'], help='data path')
 parser.add_argument('--dataset', type=str, default=config['data']['dataset'], help='dataset name')
 parser.add_argument('--batch_size', type=int, default=config['data']['batch_size'], help="batch size")
@@ -45,13 +64,20 @@ parser.add_argument('--expid', type=str, default=config['train']['expid'], help=
 parser.add_argument('--desc', type=str, default=config['train']['description'], help='实验说明')
 parser.add_argument('--max_grad_norm', type=float, default=config['train']['max_grad_norm'], help="梯度阈值")
 parser.add_argument('--log_file', default=config['train']['log_file'], help='log file')
-args = parser.parse_args()
+args = parser.parse_args(remaining_argv)
+
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="0917-seed-gridsearch",
+    # track hyperparameters and run metadata
+    config=vars(args)
+)
 
 if not os.path.exists(args.save):
     os.makedirs(args.save)
 init_seed(args.seed)  # 确保实验结果可以复现
 constructed = construct_graphs(args.data, args.dataset, args.window_length, args.strides)
-constructed_train, constructed_test = split_data(constructed, test_ratio=0.2, random_flag=True)
+constructed_train, constructed_test = split_data(constructed, test_ratio=0.4, random_flag=False)
 train_set = MultiBandDataset(constructed_train)
 tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
 test_set = MultiBandDataset(constructed_test)
@@ -74,23 +100,26 @@ log_string(log_file, 'GPU使用情况:{:,}'.format(
     torch.cuda.max_memory_allocated() / 1000000 if torch.cuda.is_available() else 0))
 
 te_loss_min = float('inf')
-max_te_acc = 0
-max_te_f1 = 0
 wait = 0
+te_acc_max = 0
 for epoch in tqdm.tqdm(range(num_epochs)):
     if wait >= args.patience:
         log_string(log_file, f'early stop at epoch: {epoch:04d}')
         break
-    training_loss = train(model, tr_loader, optimizer, scheduler, criterion, device, max_grad=args.max_grad_norm)
+    train(model, tr_loader, optimizer, scheduler, criterion, device, args.max_grad_norm)
     train_acc, train_f1, tr_loss = evaluate(model, tr_loader, criterion, device)
     test_acc, test_f1, te_loss = evaluate(model, te_loader, criterion, device)
     infos = f'Epoch {epoch + 1}, Train Acc: {train_acc:.2f}, Train F1: {train_f1:.2f}, ' \
-            f'Test Acc: {test_acc:.2f}, Test F1: {test_f1:.2f}'
+            f'Test Acc: {test_acc:.2f},Test F1: {test_f1:.2f}, '
     log_string(log_file, infos)
     print(infos)
-    max_te_acc = max(max_te_acc, test_acc)
-    max_te_f1 = max(max_te_f1, test_f1)
-    info_max = f'max acc{max_te_acc}, max f1{max_te_f1}'
+    te_acc_max = max(te_acc_max, test_acc)
+
+    for name, param in model.named_parameters():
+        if param.grad is not None:
+            wandb.log({f"gradients/{name}": wandb.Histogram(param.grad.cpu().numpy())})
+            wandb.log({f"parameters/{name}": wandb.Histogram(param.data.cpu().numpy())})
+
     if te_loss <= te_loss_min:
         info1 = f'val loss decrease from {te_loss_min:.4f} to {te_loss:.4f}, ' \
                 f'save model to ' \
@@ -104,11 +133,28 @@ for epoch in tqdm.tqdm(range(num_epochs)):
                    args.save + "exp_" + args.expid + "_" + str(round(te_loss_min, 2)) + "_best_model.pth")
     else:
         wait += 1
+    wandb.log({
+        "epoch": epoch,
+        "learning_rate": scheduler.get_last_lr()[0],
+        "train_loss": tr_loss,
+        "train_accuracy": train_acc,
+        "val_loss": te_loss,
+        "val_accuracy": test_acc,
+    })
+    # wandb.log({"roc_curve" : wandb.plot.roc_curve(te_labels, te_preds, labels=["LVLA", "HVLA", "LVHA" ,"HVHA"])})
+
 
     if args.check_gradient:
         check_grad(model, log_file)
     if (epoch+1) / print_every == 0:
         print(infos)
 
-print(info_max)
+final_info =f'Test Acc: {te_acc_max}'
+log_string(log_file, final_info)
+print(final_info)
+wandb.watch(model, criterion, log='all', log_freq=10)
+# [optional] finish the wandb run, necessary in notebooks
+wandb.finish()
+
+
 

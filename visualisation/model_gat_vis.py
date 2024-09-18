@@ -160,11 +160,11 @@ def evaluate(model, data_loader, criterion, device):
                 attn_weight = getattr(model, f'attn_weight_{band}')
                 
                 # 动态生成文件路径
-                torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/15_20131105/attn_weight_l1{band}_{i}.pt')
+                torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/1_20131027/attn_weight_l1{band}_{i}.pt')
             # torch.save(model.attn_weight, f'/data/Anaiis/garage/vis_data/6_20130712/attn_weight_l1gamma_{i}.pt')
-            torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/15_20131105/edge_index_l1_{i}.pt')
-            torch.save(labels, f'/data/Anaiis/garage/vis_data/15_20131105/labels_{i}.pt')
-            if labels != torch.load(f'/data/Anaiis/garage/vis_data/15_20131105/labels_{i}.pt').item():
+            torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/1_20131027/edge_index_l1_{i}.pt')
+            torch.save(labels, f'/data/Anaiis/garage/vis_data/1_20131027/labels_{i}.pt')
+            if labels != torch.load(f'/data/Anaiis/garage/vis_data/1_20131027/labels_{i}.pt').item():
                 print("attn!")
             loss = criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
