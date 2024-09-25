@@ -4,20 +4,18 @@ import configparser
 import tqdm
 import matplotlib.pyplot as plt
 from torch import nn
-from model_gat_vis import MultiBandDataset, FusionModel, train, evaluate
-from torch_geometric.data import DataLoader
-import sys
-import os
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-sys.path.append(parent_dir)
+from model_gat_seed import MultiBandDataset, FusionModel, train, evaluate
+from torch_geometric.loader import DataLoader
 from utils_de import *
 from torch.optim.lr_scheduler import StepLR
+from sklearn.model_selection import KFold
+import numpy as np
 
 DATASET = 'SEED'
-config_file = f'./1.conf'
+config_file = f'./configs/{DATASET}/iv.conf'
 config = configparser.ConfigParser()
 config.read(config_file)
+
 parser = argparse.ArgumentParser(description='arguments')
 parser.add_argument('--data', type=str, default=config['data']['data'], help='data path')
 parser.add_argument('--dataset', type=str, default=config['data']['dataset'], help='dataset name')
@@ -46,7 +44,7 @@ parser.add_argument('--patience', type=int, default=config['train']['patience'],
 parser.add_argument('--print_every', type=int, default=config['train']['print_every'], help="训练代数")
 parser.add_argument('--lr_decay_every', type=int, default=config['train']['lr_decay_every'], help="lr decay every xx epochs")
 parser.add_argument('--save', type=str, default=config['train']['save'], help='保存路径')
-parser.add_argument('--expid', type=int, default=config['train']['expid'], help='实验 id')
+parser.add_argument('--expid', type=str, default=config['train']['expid'], help='实验 id')
 parser.add_argument('--desc', type=str, default=config['train']['description'], help='实验说明')
 parser.add_argument('--max_grad_norm', type=float, default=config['train']['max_grad_norm'], help="梯度阈值")
 parser.add_argument('--log_file', default=config['train']['log_file'], help='log file')
@@ -55,36 +53,72 @@ args = parser.parse_args()
 if not os.path.exists(args.save):
     os.makedirs(args.save)
 init_seed(args.seed)  # 确保实验结果可以复现
+
+# 构建数据集
 constructed = construct_graphs(args.data, args.dataset, args.window_length, args.strides)
-constructed_train, constructed_test = split_data(constructed, test_ratio=0.9, random_flag=True)
-train_set = MultiBandDataset(constructed_train)
-tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
-test_set = MultiBandDataset(constructed_test)
-print(len(test_set))
-te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
+dataset = MultiBandDataset(constructed)
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
-model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
-                    dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
-ckpt = torch.load('/data/Anaiis/garage/SEED_noshuf/exp_34-0908_0.0_best_model.pth')
-model.load_state_dict(ckpt['state_dict'], strict=False)
+# 5折交叉验证
+kf = KFold(n_splits=5, shuffle=True, random_state=args.seed)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
-criterion = nn.CrossEntropyLoss()
-scheduler = StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay_rate)
+fold = 0
+all_test_accs = []
+all_test_f1s = []
 
-num_epochs = args.epochs
-print_every = args.print_every
-log_file = open(args.log_file+args.desc, 'w')
-log_string(log_file, str(args))
-log_string(log_file, "模型可训练参数: {:,}".format(count_parameters(model)))
-log_string(log_file, 'GPU使用情况:{:,}'.format(
-    torch.cuda.max_memory_allocated() / 1000000 if torch.cuda.is_available() else 0))
+for train_index, test_index in kf.split(dataset):
+    fold += 1
+    print(f'Fold {fold}')
 
-te_loss_min = float('inf')
+    # 根据索引划分训练集和测试集
+    train_set = torch.utils.data.Subset(dataset, train_index)
+    test_set = torch.utils.data.Subset(dataset, test_index)
+    
+    tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
+    te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
-test_acc, test_f1, te_loss = evaluate(model, te_loader, criterion, device)
-infos = f'Test Acc: {test_acc:.2f}, Test F1: {test_f1:.2f}'
-log_string(log_file, infos)
-print(infos)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
+                        dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
+    model_parameters_init(model)  # 初始化模型参数
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
+    criterion = nn.CrossEntropyLoss()
+    scheduler = StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay_rate)
 
+    # 训练和评估
+    num_epochs = args.epochs
+    print_every = args.print_every
+    te_loss_min = float('inf')
+    max_te_acc = 0
+    max_te_f1 = 0
+    wait = 0
+    
+    for epoch in tqdm.tqdm(range(num_epochs)):
+        if wait >= args.patience:
+            print(f'Early stopping at epoch: {epoch:04d} for fold {fold}')
+            break
+        training_loss = train(model, tr_loader, optimizer, scheduler, criterion, device, max_grad=args.max_grad_norm)
+        train_acc, train_f1, tr_loss = evaluate(model, tr_loader, criterion, device)
+        test_acc, test_f1, te_loss = evaluate(model, te_loader, criterion, device)
+
+        print(f'Epoch {epoch + 1}, Train Acc: {train_acc:.2f}, Train F1: {train_f1:.2f}, '
+              f'Test Acc: {test_acc:.2f}, Test F1: {test_f1:.2f}')
+        
+        max_te_acc = max(max_te_acc, test_acc)
+        max_te_f1 = max(max_te_f1, test_f1)
+
+        # Early stopping机制
+        if te_loss <= te_loss_min:
+            te_loss_min = te_loss
+            wait = 0
+            state = {'state_dict': model.state_dict(), 'hyperparams': vars(args)}
+            torch.save(state, f'{args.save}/fold_{fold}_best_model.pth')
+        else:
+            wait += 1
+
+    print(f'Best test acc for fold {fold}: {max_te_acc:.2f}, Best F1: {max_te_f1:.2f}')
+    all_test_accs.append(max_te_acc)
+    all_test_f1s.append(max_te_f1)
+
+# 输出交叉验证的平均结果
+print(f'Average Test Accuracy: {np.mean(all_test_accs):.2f}')
+print(f'Average Test F1 Score: {np.mean(all_test_f1s):.2f}')

@@ -5,6 +5,7 @@ from scipy.io import loadmat
 from pykalman import KalmanFilter
 from scipy.signal import welch, butter, lfilter
 from sklearn.model_selection import train_test_split
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 
 def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
@@ -163,18 +164,16 @@ def compute_features_96(filtered_data, baseline):  # , baseline  num_windows: �
 
 def filterLDS(features):  # num_windows: 每s要分成多少个windows
     seg, i, chan, band = features.shape
-    feat_continue = np.reshape(features, (-1, chan, band))  # seg, i, chan, band
-    tmp = np.zeros(feat_continue.shape)
-    for sing_chan in range(chan):
-        for sing_band in range(band):
-            signal = feat_continue[:, sing_chan, sing_band]
-            kf = KalmanFilter(initial_state_mean=0, n_dim_obs=1)
-            kf = kf.em(signal, n_iter=5)
-            smoothed_signal, _ = kf.smooth(signal)
-            tmp[:, sing_chan, sing_band] = smoothed_signal[:, 0]
-    LDSfeatures = np.reshape(tmp, features.shape)
-
-    return LDSfeatures
+    # feat_continue = np.reshape(features, (-1, chan, band))  # seg, i, chan, band
+    tmp = np.zeros(features.shape)
+    for sample in range(seg):
+        x = np.linspace(0, 1, i)
+        for sing_chan in range(chan):
+            for sing_band in range(band):
+                signal = features[sample, :, sing_chan, sing_band]
+                smoothed_signal = lowess(signal, x, frac=0.8)
+                tmp[sample, :, sing_chan, sing_band] = smoothed_signal[:, 1]
+    return tmp
 
 
 def seperate(features, T, init_label):
@@ -247,16 +246,17 @@ if __name__ == '__main__':
     # dta = np.load('../Effect_Att/Data/len_96/False/s01/de.npy')
     # abel = np.load('../Effect_Att/Data/len_96/False/s01/label.npy')
     # print(dta.shape, abel.shape)
-    file_path = f'/home/micro/Anaiis/Dataset/DEAP/data_preprocessed_matlab/'
+    file_path = f'/data/Anaiis/Data/DEAP_original/'
     for filename in os.listdir(file_path):
         raw_data, new_label = load_data_label(os.path.join(file_path, filename))
         filtered = filter_data(raw_data)  # (40, 32, 8064, 4)
         baseline = compute_baselineDE(filtered)
         # window_num = 9  # 需被T整除
         features = compute_features_96(filtered, baseline)  # (40, 80, 32, 4)
-        print(features.shape)
-        feat = features.reshape((-1, 32, 4))
-        np.save(f'/data/Anaiis/Data/DEAP/{filename[:3]}/de.npy', feat)
+        features_LDS = filterLDS(features)
+        print(features_LDS.shape)
+        feat = features_LDS.reshape((-1, 32, 4))
+        np.save(f'/data/Anaiis/Data/DEAP/{filename[:3]}/de_LDS.npy', feat)
     # features_LDS = filterLDS(features)
     # seperated, labels = seperate(features, 9, new_label)
     # labels = np.repeat(new_label, 80, axis=0)

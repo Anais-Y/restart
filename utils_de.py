@@ -50,16 +50,18 @@ def construct_graphs(dataset_dir, dataset, w_len, strides):
         channels = 32
         band_list = ['alpha', 'beta', 'gamma', 'theta']
         window_len = w_len
+        de_feat = np.load(os.path.join(dataset_dir + 'de_LDS.npy'))
     elif dataset == "SEED":
         channels = 62
         band_list = ['delta', 'alpha', 'beta', 'gamma', 'theta']
         window_len = w_len
+        de_feat = np.load(os.path.join(dataset_dir + 'de.npy'))
     else:
         raise ValueError("Please define a dataset")
 
     all_samples = np.load(os.path.join(dataset_dir + 'data.npy'))
     label = np.load(os.path.join(dataset_dir + 'label.npy'))
-    de_feat = np.load(os.path.join(dataset_dir + 'de.npy'))
+    # de_feat = np.load(os.path.join(dataset_dir + 'de.npy'))
     # print(de_feat.shape)  # 3394, 62, 5 vs 3200, 32, 4
     constructed = {'label': [], 'de': []}
     edge_index_template = [[i, j] for i in range(strides * channels) for j in range(strides * channels) if i != j]
