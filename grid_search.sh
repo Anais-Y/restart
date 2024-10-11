@@ -2,7 +2,7 @@
 
 hidden_dims=(128 256)
 num_heads=(2 4 8)
-dropout_disactives=(0.25 0.3 0.6 0.9)
+dropout_disactives=(0.3 0.6 0.9)
 learning_rates=(1e-3 1e-4 5e-4)
 log_path="/data/Anaiis/logs/SEED_"
 
@@ -10,7 +10,7 @@ formatted_date=$(date +"%m%d%H")
 current_date=$(date +"%m%d")
 count=1
 
-for data_path in /data/Anaiis/Data/Data/SEED/len_200/smooth_False/7_*/; do
+for data_path in /data/Anaiis/Data/Data/SEED/len_200/smooth_False/2_20140419/; do
     for hidden_dim in "${hidden_dims[@]}"; do
          for num_head in "${num_heads[@]}"; do
             for dropout in "${dropout_disactives[@]}"; do
@@ -26,7 +26,8 @@ for data_path in /data/Anaiis/Data/Data/SEED/len_200/smooth_False/7_*/; do
                         --dropout_disactive $dropout \
                         --learning_rate $lr \
                         --expid $expid > /data/Anaiis/garage/onlyDE_seed_noshuf/$formatted_date-$description.txt \
-                        --log_file ${log_path}${expid}.log
+                        --log_file ${log_path}${expid}.log \
+                        --seed 1
                     if [ $? -eq 0 ]; then
                         echo "Successfully processed $description"
                     else

@@ -15,7 +15,7 @@ from utils_de import *
 from torch.optim.lr_scheduler import StepLR
 
 DATASET = 'SEED'
-config_file = f'./1.conf'
+config_file = f'./s01.conf'
 config = configparser.ConfigParser()
 config.read(config_file)
 parser = argparse.ArgumentParser(description='arguments')
@@ -56,17 +56,14 @@ if not os.path.exists(args.save):
     os.makedirs(args.save)
 init_seed(args.seed)  # 确保实验结果可以复现
 constructed = construct_graphs(args.data, args.dataset, args.window_length, args.strides)
-constructed_train, constructed_test = split_data(constructed, test_ratio=0.9, random_flag=True)
-train_set = MultiBandDataset(constructed_train)
-tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
-test_set = MultiBandDataset(constructed_test)
+test_set = MultiBandDataset(constructed)
 print(len(test_set))
-te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
+te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False)
 
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
-ckpt = torch.load('/data/Anaiis/garage/SEED_noshuf/exp_34-0908_0.0_best_model.pth')
+ckpt = torch.load('/data/Anaiis/garage/DEAPnoshufTopK/exp_6-1004_0.0_best_model.pth')
 model.load_state_dict(ckpt['state_dict'], strict=False)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)

@@ -3,9 +3,13 @@ formatted_date=$(date +"%m%d%H")
 current_date=$(date +"%m%d")
 count=1
 
-for data_path in /data/Anaiis/Data/DEAP/s*/; do
+for data_path in /data/Anaiis/Data/Data/SEED/len_200/smooth_False/*/; do
     description=$(basename "$data_path")    
-    python watch_PE.py --config_file configs/DEAP/s01.conf --data $data_path --desc "$description" --expid $count-$current_date > /data/Anaiis/garage/deap_topK/$formatted_date-$description.txt
+    python watch_PE.py --config_file configs/SEED/1.conf\
+    --hidden_dim 128\
+    --data $data_path --desc "$description" \
+    --strides 1\
+    --expid $count-$current_date > /data/Anaiis/garage/step1-seed_topK/$formatted_date-$description.txt
     if [ $? -eq 0 ]; then
         echo "Successfully processed $description"
     else

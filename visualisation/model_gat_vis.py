@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import BatchNorm1d
-from torch_geometric.nn import GATConv, global_mean_pool
+from torch_geometric.nn import GATConv, global_mean_pool, TopKPooling
 from torch_geometric.data import Dataset, DataLoader
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, f1_score
@@ -16,6 +16,8 @@ class GAT(nn.Module):
         # self.conv3 = GATConv(hidden_dim * num_heads, num_classes, heads=1, concat=False, dropout=dropout_disac)
         self.bn1 = BatchNorm1d(num_node_features)
         self.bn2 = BatchNorm1d(hidden_dim * num_heads)
+        self.pool1 = TopKPooling(hidden_dim * num_heads, ratio=0.5)
+        self.pool2 = TopKPooling(num_classes, ratio=0.5)
 
     def forward(self, band_data):
         x, edge_index, batch = band_data.x, band_data.edge_index, band_data.batch
@@ -23,20 +25,24 @@ class GAT(nn.Module):
         # 第一层GAT卷积
         # x = F.dropout(x, p=0.6, training=self.training)
         x = self.bn1(x)
-        x, _tuple = self.conv1(x, edge_index, return_attention_weights=True)
-        x = F.relu(x)
+        x_save, _tuple = self.conv1(x, edge_index, return_attention_weights=True)
+        x = F.relu(x_save)
+
+        x, edge_index, _, batch, _, _ = self.pool1(x, edge_index, batch=batch)
 
         # 第二层GAT卷积
         # x = F.dropout(x, p=0.6, training=self.training)
         x = self.bn2(x)
-        x, _tuple = self.conv2(x, edge_index, return_attention_weights=True)
+        x = self.conv2(x, edge_index)
         x = F.gelu(x)
+
+        x, edge_index, _, batch, _, _ = self.pool2(x, edge_index, batch=batch)
 
         # x = self.conv3(x, edge_index)
         # 全局平均池化
         x = global_mean_pool(x, batch)
 
-        return F.log_softmax(x, dim=1), _tuple
+        return F.log_softmax(x, dim=1), x_save
 
 
 class FusionModel(nn.Module):
@@ -86,17 +92,17 @@ class FusionModel(nn.Module):
             self.attn_weight_de = _tuple_de[1]
             self.edge_index = _tuple_gamma[0]
         elif self.dataset == "SEED":
-            x_delta, _tuple_delta = self.GAT_delta(data['delta'])
+            x_delta, x_save = self.GAT_beta(data['beta'])
             x_de, _tuple_de = self.GAT_de(data['de'])
             self.attn_weight_gamma = _tuple_gamma[1]
             self.attn_weight_theta = _tuple_theta[1]
             self.attn_weight_beta = _tuple_beta[1]
             self.attn_weight_alpha = _tuple_alpha[1]
-            self.attn_weight_delta = _tuple_delta[1]
+            # self.attn_weight_delta = _tuple_delta[1]
             self.attn_weight_de = _tuple_de[1]
             self.edge_index = _tuple_gamma[0]
-            # self.x_feature = x_tosave
             x_concat = torch.cat((x_delta, x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
+            self.x_feature = x_concat
         else:
             print('[Attention]!!!')
             x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta), dim=1)
@@ -152,20 +158,20 @@ def evaluate(model, data_loader, criterion, device):
             testing_data = {key: value.to(device) for key, value in testing_data.items() if key != 'label'}
             outputs = model(testing_data)
             # print(outputs, model.attn_weight)
-            # torch.save(model.x_feature, f'/data/Anaiis/garage/vis_data/6_20130712/beta_feats_{i}.pt')
+            torch.save(model.x_feature, f'/data/Anaiis/garage/vis_data/15_20131105/step1/fusion_{i}.pt')
             # print(model.x_feature.shape)
-            bands = ['gamma', 'theta', 'beta', 'alpha', 'de']
-            for band in bands:
-                # 使用 getattr 动态获取 model 的 attn_weight 属性
-                attn_weight = getattr(model, f'attn_weight_{band}')
+            # bands = ['gamma', 'theta', 'beta', 'alpha', 'de']
+            # for band in bands:
+            #     # 使用 getattr 动态获取 model 的 attn_weight 属性
+            #     attn_weight = getattr(model, f'attn_weight_{band}')
                 
                 # 动态生成文件路径
-                torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/6_20130712/attn_weight_l2{band}_{i}.pt')
-            # torch.save(model.attn_weight, f'/data/Anaiis/garage/vis_data/6_20130712/attn_weight_l1gamma_{i}.pt')
-            torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/6_20130712/edge_index_l2_{i}.pt')
-            torch.save(labels, f'/data/Anaiis/garage/vis_data/6_20130712/labels_{i}.pt')
-            if labels != torch.load(f'/data/Anaiis/garage/vis_data/6_20130712/labels_{i}.pt').item():
-                print("attn!")
+            #     torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/1_20131027/attn_weight_l1{band}_{i}.pt')
+            # # torch.save(model.attn_weight, f'/data/Anaiis/garage/vis_data/6_20130712/attn_weight_l1gamma_{i}.pt')
+            # torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/1_20131027/edge_index_l1_{i}.pt')
+            torch.save(labels, f'/data/Anaiis/garage/vis_data/15_20131105/step1/labels_{i}.pt')
+            # if labels != torch.load(f'/data/Anaiis/garage/vis_data/1_20131027/labels_{i}.pt').item():
+                # print("attn!")
             loss = criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
             all_preds.extend(predicted.cpu().numpy())

@@ -1,0 +1,106 @@
+nohup: 忽略输入
+wandb: Currently logged in as: anaiis (for-graduate-anaiis). Use `wandb login --relogin` to force relogin
+wandb: - Waiting for wandb.init()...wandb: \ Waiting for wandb.init()...wandb: wandb version 0.18.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.17.0
+wandb: Run data is saved locally in /data/Anaiis/anti_overfit/wandb/run-20241005_233536-jjscgris
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run silver-aardvark-85
+wandb: ⭐️ View project at https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf
+wandb: 🚀 View run at https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf/runs/jjscgris
+/home/micro/anaconda3/envs/bob_env1/lib/python3.8/site-packages/torch_geometric/deprecation.py:26: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  warnings.warn(out)
+  0%|          | 0/500 [00:00<?, ?it/s]  0%|          | 1/500 [00:10<1:28:50, 10.68s/it]  0%|          | 2/500 [00:19<1:18:45,  9.49s/it]  1%|          | 3/500 [00:28<1:16:11,  9.20s/it]  1%|          | 4/500 [00:37<1:14:47,  9.05s/it]  1%|          | 5/500 [00:45<1:14:19,  9.01s/it]  1%|          | 6/500 [00:54<1:14:00,  8.99s/it]  1%|▏         | 7/500 [01:03<1:13:41,  8.97s/it]  2%|▏         | 8/500 [01:12<1:13:45,  9.00s/it]  2%|▏         | 9/500 [01:21<1:13:13,  8.95s/it]  2%|▏         | 10/500 [01:30<1:12:35,  8.89s/it]  2%|▏         | 11/500 [01:39<1:12:07,  8.85s/it]  2%|▏         | 12/500 [01:47<1:11:34,  8.80s/it]  3%|▎         | 13/500 [01:56<1:11:40,  8.83s/it]  3%|▎         | 14/500 [02:05<1:11:52,  8.87s/it]  3%|▎         | 15/500 [02:14<1:11:31,  8.85s/it]  3%|▎         | 16/500 [02:23<1:11:21,  8.85s/it]  3%|▎         | 17/500 [02:31<1:10:15,  8.73s/it]  4%|▎         | 18/500 [02:40<1:09:29,  8.65s/it]  4%|▍         | 19/500 [02:49<1:10:03,  8.74s/it]  4%|▍         | 20/500 [02:58<1:10:10,  8.77s/it]  4%|▍         | 21/500 [03:07<1:10:14,  8.80s/it]  4%|▍         | 22/500 [03:15<1:10:18,  8.83s/it]  5%|▍         | 23/500 [03:24<1:09:27,  8.74s/it]  5%|▍         | 24/500 [03:32<1:08:42,  8.66s/it]  5%|▌         | 25/500 [03:41<1:08:58,  8.71s/it]  5%|▌         | 26/500 [03:50<1:08:52,  8.72s/it]  5%|▌         | 27/500 [03:59<1:09:18,  8.79s/it]  6%|▌         | 28/500 [04:08<1:09:47,  8.87s/it]  6%|▌         | 29/500 [04:17<1:09:48,  8.89s/it]  6%|▌         | 30/500 [04:26<1:09:53,  8.92s/it]  6%|▌         | 31/500 [04:34<1:08:53,  8.81s/it]  6%|▋         | 32/500 [04:43<1:08:27,  8.78s/it]  7%|▋         | 33/500 [04:52<1:08:20,  8.78s/it]  7%|▋         | 34/500 [05:01<1:08:23,  8.81s/it]  7%|▋         | 35/500 [05:10<1:08:21,  8.82s/it]  7%|▋         | 36/500 [05:18<1:07:37,  8.74s/it]  7%|▋         | 37/500 [05:27<1:06:42,  8.65s/it]  8%|▊         | 38/500 [05:35<1:06:43,  8.67s/it]  8%|▊         | 39/500 [05:44<1:06:59,  8.72s/it]  8%|▊         | 40/500 [05:53<1:06:53,  8.73s/it]  8%|▊         | 41/500 [06:02<1:06:40,  8.71s/it]  8%|▊         | 42/500 [06:10<1:06:48,  8.75s/it]  9%|▊         | 43/500 [06:19<1:07:12,  8.82s/it]  9%|▉         | 44/500 [06:28<1:06:59,  8.81s/it]  9%|▉         | 45/500 [06:37<1:07:09,  8.86s/it]  9%|▉         | 46/500 [06:46<1:06:53,  8.84s/it]  9%|▉         | 47/500 [06:55<1:07:04,  8.88s/it] 10%|▉         | 48/500 [07:04<1:07:06,  8.91s/it] 10%|▉         | 49/500 [07:13<1:06:40,  8.87s/it] 10%|█         | 50/500 [07:22<1:06:26,  8.86s/it] 10%|█         | 51/500 [07:31<1:06:31,  8.89s/it] 10%|█         | 52/500 [07:40<1:06:36,  8.92s/it] 11%|█         | 53/500 [07:49<1:06:58,  8.99s/it] 11%|█         | 54/500 [07:58<1:07:21,  9.06s/it] 11%|█         | 55/500 [08:07<1:07:06,  9.05s/it] 11%|█         | 56/500 [08:16<1:06:33,  8.99s/it] 11%|█▏        | 57/500 [08:24<1:05:21,  8.85s/it] 12%|█▏        | 58/500 [08:33<1:04:20,  8.73s/it] 12%|█▏        | 59/500 [08:42<1:04:54,  8.83s/it] 12%|█▏        | 60/500 [08:51<1:05:10,  8.89s/it] 12%|█▏        | 61/500 [09:00<1:04:48,  8.86s/it] 12%|█▏        | 62/500 [09:09<1:04:39,  8.86s/it] 13%|█▎        | 63/500 [09:17<1:04:42,  8.88s/it] 13%|█▎        | 64/500 [09:26<1:04:41,  8.90s/it] 13%|█▎        | 65/500 [09:35<1:04:15,  8.86s/it] 13%|█▎        | 66/500 [09:44<1:04:24,  8.90s/it] 13%|█▎        | 67/500 [09:53<1:03:55,  8.86s/it] 14%|█▎        | 68/500 [10:02<1:04:05,  8.90s/it] 14%|█▍        | 69/500 [10:11<1:03:58,  8.91s/it] 14%|█▍        | 70/500 [10:20<1:04:02,  8.94s/it] 14%|█▍        | 71/500 [10:29<1:03:31,  8.89s/it] 14%|█▍        | 72/500 [10:37<1:02:32,  8.77s/it] 15%|█▍        | 73/500 [10:46<1:02:45,  8.82s/it] 15%|█▍        | 74/500 [10:55<1:02:49,  8.85s/it] 15%|█▌        | 75/500 [11:04<1:03:08,  8.92s/it] 15%|█▌        | 76/500 [11:13<1:02:39,  8.87s/it] 15%|█▌        | 77/500 [11:22<1:02:35,  8.88s/it] 16%|█▌        | 78/500 [11:31<1:02:30,  8.89s/it] 16%|█▌        | 79/500 [11:39<1:01:57,  8.83s/it] 16%|█▌        | 80/500 [11:48<1:02:05,  8.87s/it] 16%|█▌        | 81/500 [11:57<1:01:55,  8.87s/it] 16%|█▋        | 82/500 [12:06<1:01:51,  8.88s/it] 17%|█▋        | 83/500 [12:15<1:01:35,  8.86s/it] 17%|█▋        | 84/500 [12:24<1:01:30,  8.87s/it] 17%|█▋        | 85/500 [12:32<1:00:58,  8.82s/it] 17%|█▋        | 86/500 [12:41<1:00:26,  8.76s/it] 17%|█▋        | 87/500 [12:50<1:00:42,  8.82s/it] 18%|█▊        | 88/500 [12:59<1:00:27,  8.80s/it] 18%|█▊        | 89/500 [13:08<1:00:33,  8.84s/it] 18%|█▊        | 90/500 [13:16<1:00:17,  8.82s/it] 18%|█▊        | 90/500 [13:16<1:00:30,  8.86s/it]
+wandb: - 0.010 MB of 0.010 MB uploadedwandb: \ 0.010 MB of 0.010 MB uploadedwandb: | 0.010 MB of 0.010 MB uploadedwandb: / 0.010 MB of 0.010 MB uploadedwandb: - 0.010 MB of 0.010 MB uploadedwandb: \ 0.010 MB of 0.010 MB uploadedwandb: | 0.010 MB of 0.010 MB uploadedwandb: / 0.010 MB of 0.010 MB uploadedwandb: - 0.010 MB of 0.605 MB uploadedwandb: \ 0.010 MB of 0.605 MB uploadedwandb: | 0.431 MB of 0.605 MB uploadedwandb: / 0.431 MB of 0.605 MB uploadedwandb: - 0.605 MB of 0.605 MB uploadedwandb: \ 0.605 MB of 0.605 MB uploadedwandb: | 0.605 MB of 0.605 MB uploadedwandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:          epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:  learning_rate ████▇▇▇▇▇▆▆▆▆▅▅▅▅▅▄▄▄▄▃▃▃▃▃▃▃▃▃▂▂▂▂▁▁▁▁▁
+wandb: train_accuracy ▁▆▆▆███▆████████████████████████████████
+wandb:     train_loss █▅▅▃▃▁▂▃▂▂▁▁▁▂▁▁▁▁▁▁▂▁▁▁▁▁▁▁▄▁▂▁▂▁▂▄▁▂▁▂
+wandb:   val_accuracy ▁▅▆▆█▇█▆▇█▇███████████████████████▇█████
+wandb:       val_loss ▃▂▁▅▁▁▁▁▁▂▁▁▃▁▃▂▁▃▁▁▁▁▁▁▁▁▁▃▁▂▆▂▂▁▁▁▁█▁▁
+wandb: 
+wandb: Run summary:
+wandb:          epoch 89
+wandb:  learning_rate 0.00039
+wandb: train_accuracy 0.95119
+wandb:     train_loss 0.17443
+wandb:   val_accuracy 0.9
+wandb:       val_loss 3e-05
+wandb: 
+wandb: 🚀 View run silver-aardvark-85 at: https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf/runs/jjscgris
+wandb: ⭐️ View project at: https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241005_233536-jjscgris/logs
+Successfully processed s30
+wandb: Currently logged in as: anaiis (for-graduate-anaiis). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.17.0
+wandb: Run data is saved locally in /data/Anaiis/anti_overfit/wandb/run-20241005_234939-tixqac0u
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run vibrant-snowball-86
+wandb: ⭐️ View project at https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf
+wandb: 🚀 View run at https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf/runs/tixqac0u
+/home/micro/anaconda3/envs/bob_env1/lib/python3.8/site-packages/torch_geometric/deprecation.py:26: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  warnings.warn(out)
+  0%|          | 0/500 [00:00<?, ?it/s]  0%|          | 1/500 [00:15<2:08:36, 15.46s/it]  0%|          | 2/500 [00:24<1:35:10, 11.47s/it]  1%|          | 3/500 [00:30<1:15:25,  9.11s/it]  1%|          | 4/500 [00:36<1:05:47,  7.96s/it]  1%|          | 5/500 [00:42<1:00:07,  7.29s/it]  1%|          | 6/500 [00:48<56:28,  6.86s/it]    1%|▏         | 7/500 [00:54<54:25,  6.62s/it]  2%|▏         | 8/500 [01:01<53:11,  6.49s/it]  2%|▏         | 9/500 [01:07<52:03,  6.36s/it]  2%|▏         | 10/500 [01:13<50:52,  6.23s/it]  2%|▏         | 11/500 [01:19<50:01,  6.14s/it]  2%|▏         | 12/500 [01:25<49:46,  6.12s/it]  3%|▎         | 13/500 [01:31<49:09,  6.06s/it]  3%|▎         | 14/500 [01:36<48:49,  6.03s/it]  3%|▎         | 15/500 [01:42<48:38,  6.02s/it]  3%|▎         | 16/500 [01:48<48:14,  5.98s/it]  3%|▎         | 17/500 [01:54<47:59,  5.96s/it]  4%|▎         | 18/500 [02:00<47:54,  5.96s/it]  4%|▍         | 19/500 [02:06<47:47,  5.96s/it]  4%|▍         | 20/500 [02:15<53:42,  6.71s/it]  4%|▍         | 21/500 [02:23<57:28,  7.20s/it]  4%|▍         | 22/500 [02:31<59:57,  7.53s/it]  5%|▍         | 23/500 [02:40<1:01:40,  7.76s/it]  5%|▍         | 24/500 [02:48<1:02:45,  7.91s/it]  5%|▌         | 25/500 [02:56<1:03:36,  8.04s/it]  5%|▌         | 26/500 [03:04<1:03:59,  8.10s/it]  5%|▌         | 27/500 [03:13<1:04:44,  8.21s/it]  6%|▌         | 28/500 [03:21<1:05:10,  8.28s/it]  6%|▌         | 29/500 [03:30<1:05:11,  8.31s/it]  6%|▌         | 30/500 [03:38<1:05:05,  8.31s/it]  6%|▌         | 31/500 [03:46<1:05:08,  8.33s/it]  6%|▋         | 32/500 [03:55<1:05:23,  8.38s/it]  6%|▋         | 32/500 [03:55<57:23,  7.36s/it]  
+wandb: - 0.010 MB of 0.010 MB uploadedwandb: \ 0.010 MB of 0.010 MB uploadedwandb: | 0.010 MB of 0.010 MB uploadedwandb: / 0.010 MB of 0.010 MB uploadedwandb: - 0.010 MB of 0.010 MB uploadedwandb: \ 0.010 MB of 0.010 MB uploadedwandb: | 0.010 MB of 0.388 MB uploadedwandb: / 0.010 MB of 0.388 MB uploadedwandb: - 0.350 MB of 0.388 MB uploadedwandb: \ 0.350 MB of 0.388 MB uploadedwandb: | 0.388 MB of 0.388 MB uploadedwandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:          epoch ▁▁▁▂▂▂▂▃▃▃▃▃▄▄▄▄▅▅▅▅▆▆▆▆▆▇▇▇▇███
+wandb:  learning_rate █████████▅▅▅▅▅▅▅▅▅▅▃▃▃▃▃▃▃▃▃▃▁▁▁
+wandb: train_accuracy ▁▂▃▂▄▅▅▆▆▅▇▆▇▇▇▆▇▅▇██▇████▇█████
+wandb:     train_loss ▇▅▄█▅▆▅▃▂▆▃▂▂▃▁▄▃▄▅▂▄▄▃▁▂▂▄▂▃▂▂▂
+wandb:   val_accuracy ▁▂▃▃▃▅▅▅▆▅▇▆▆▅▇▅▇▄▆▇▇▆██▇▇▆█████
+wandb:       val_loss ▅▄▃▅▁▅▄▁▂▃▄▁▃▂▂▃▂█▁▂▃▁▁▃▅▂▁▃▂▁▂▇
+wandb: 
+wandb: Run summary:
+wandb:          epoch 31
+wandb:  learning_rate 0.00073
+wandb: train_accuracy 0.96437
+wandb:     train_loss 0.15287
+wandb:   val_accuracy 0.8673
+wandb:       val_loss 2.21651
+wandb: 
+wandb: 🚀 View run vibrant-snowball-86 at: https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf/runs/tixqac0u
+wandb: ⭐️ View project at: https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241005_234939-tixqac0u/logs
+Successfully processed s31
+wandb: Currently logged in as: anaiis (for-graduate-anaiis). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.18.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.17.0
+wandb: Run data is saved locally in /data/Anaiis/anti_overfit/wandb/run-20241005_235413-fm2x6tdx
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run dazzling-gorge-87
+wandb: ⭐️ View project at https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf
+wandb: 🚀 View run at https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf/runs/fm2x6tdx
+/home/micro/anaconda3/envs/bob_env1/lib/python3.8/site-packages/torch_geometric/deprecation.py:26: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  warnings.warn(out)
+  0%|          | 0/500 [00:00<?, ?it/s]  0%|          | 1/500 [00:10<1:26:52, 10.44s/it]  0%|          | 2/500 [00:19<1:18:20,  9.44s/it]  1%|          | 3/500 [00:27<1:15:17,  9.09s/it]  1%|          | 4/500 [00:36<1:13:17,  8.87s/it]  1%|          | 5/500 [00:44<1:11:50,  8.71s/it]  1%|          | 6/500 [00:53<1:11:15,  8.66s/it]  1%|▏         | 7/500 [01:01<1:10:41,  8.60s/it]  2%|▏         | 8/500 [01:10<1:10:34,  8.61s/it]  2%|▏         | 9/500 [01:18<1:10:11,  8.58s/it]  2%|▏         | 10/500 [01:27<1:09:59,  8.57s/it]  2%|▏         | 11/500 [01:36<1:09:46,  8.56s/it]  2%|▏         | 12/500 [01:44<1:09:33,  8.55s/it]  3%|▎         | 13/500 [01:53<1:09:21,  8.55s/it]  3%|▎         | 14/500 [02:01<1:09:01,  8.52s/it]  3%|▎         | 15/500 [02:10<1:08:52,  8.52s/it]  3%|▎         | 16/500 [02:18<1:08:35,  8.50s/it]  3%|▎         | 17/500 [02:27<1:08:43,  8.54s/it]  4%|▎         | 18/500 [02:35<1:08:40,  8.55s/it]  4%|▍         | 19/500 [02:44<1:08:29,  8.54s/it]  4%|▍         | 20/500 [02:52<1:08:11,  8.52s/it]  4%|▍         | 21/500 [03:01<1:07:39,  8.47s/it]  4%|▍         | 22/500 [03:09<1:07:45,  8.51s/it]  5%|▍         | 23/500 [03:18<1:07:43,  8.52s/it]  5%|▍         | 24/500 [03:26<1:07:55,  8.56s/it]  5%|▌         | 25/500 [03:35<1:07:39,  8.55s/it]  5%|▌         | 26/500 [03:43<1:07:24,  8.53s/it]  5%|▌         | 27/500 [03:50<1:01:48,  7.84s/it]  6%|▌         | 28/500 [03:56<57:09,  7.27s/it]    6%|▌         | 29/500 [04:02<54:01,  6.88s/it]  6%|▌         | 30/500 [04:07<51:34,  6.58s/it]  6%|▌         | 31/500 [04:14<50:13,  6.43s/it]  6%|▋         | 32/500 [04:19<48:58,  6.28s/it]  7%|▋         | 33/500 [04:25<48:01,  6.17s/it]  7%|▋         | 34/500 [04:31<47:31,  6.12s/it]  7%|▋         | 35/500 [04:37<47:19,  6.11s/it]  7%|▋         | 36/500 [04:43<46:56,  6.07s/it]  7%|▋         | 37/500 [04:49<46:22,  6.01s/it]  8%|▊         | 38/500 [04:55<45:54,  5.96s/it]  8%|▊         | 39/500 [05:01<45:46,  5.96s/it]  8%|▊         | 40/500 [05:07<45:45,  5.97s/it]  8%|▊         | 41/500 [05:13<45:45,  5.98s/it]  8%|▊         | 42/500 [05:21<49:16,  6.46s/it]  9%|▊         | 43/500 [05:29<53:53,  7.07s/it]  9%|▉         | 44/500 [05:37<56:25,  7.43s/it]  9%|▉         | 45/500 [05:46<58:47,  7.75s/it]  9%|▉         | 46/500 [05:54<1:00:16,  7.97s/it]  9%|▉         | 47/500 [06:03<1:01:18,  8.12s/it] 10%|▉         | 48/500 [06:11<1:02:10,  8.25s/it] 10%|▉         | 49/500 [06:20<1:02:37,  8.33s/it] 10%|█         | 50/500 [06:29<1:03:08,  8.42s/it] 10%|█         | 51/500 [06:37<1:03:35,  8.50s/it] 10%|█         | 52/500 [06:46<1:03:19,  8.48s/it] 11%|█         | 53/500 [06:54<1:03:10,  8.48s/it] 11%|█         | 54/500 [07:03<1:03:00,  8.48s/it] 11%|█         | 55/500 [07:11<1:02:40,  8.45s/it] 11%|█         | 56/500 [07:20<1:02:38,  8.47s/it] 11%|█▏        | 57/500 [07:28<1:02:32,  8.47s/it] 12%|█▏        | 58/500 [07:37<1:02:38,  8.50s/it] 12%|█▏        | 59/500 [07:45<1:02:32,  8.51s/it] 12%|█▏        | 60/500 [07:54<1:02:16,  8.49s/it] 12%|█▏        | 61/500 [08:02<1:02:08,  8.49s/it] 12%|█▏        | 62/500 [08:10<1:01:37,  8.44s/it] 13%|█▎        | 63/500 [08:19<1:01:32,  8.45s/it] 13%|█▎        | 64/500 [08:28<1:01:58,  8.53s/it] 13%|█▎        | 65/500 [08:36<1:01:57,  8.55s/it] 13%|█▎        | 66/500 [08:45<1:01:48,  8.54s/it] 13%|█▎        | 67/500 [08:53<1:02:04,  8.60s/it] 14%|█▎        | 68/500 [09:02<1:01:45,  8.58s/it] 14%|█▍        | 69/500 [09:11<1:01:35,  8.57s/it] 14%|█▍        | 70/500 [09:19<1:01:22,  8.56s/it] 14%|█▍        | 71/500 [09:28<1:01:13,  8.56s/it] 14%|█▍        | 72/500 [09:36<1:00:56,  8.54s/it] 15%|█▍        | 73/500 [09:45<1:00:48,  8.54s/it] 15%|█▍        | 74/500 [09:53<1:00:51,  8.57s/it] 15%|█▌        | 75/500 [10:02<1:00:41,  8.57s/it] 15%|█▌        | 76/500 [10:11<1:00:49,  8.61s/it] 15%|█▌        | 77/500 [10:19<1:00:28,  8.58s/it] 16%|█▌        | 78/500 [10:28<1:00:12,  8.56s/it] 16%|█▌        | 79/500 [10:36<59:52,  8.53s/it]   16%|█▌        | 80/500 [10:45<1:00:01,  8.57s/it] 16%|█▌        | 81/500 [10:53<59:58,  8.59s/it]   16%|█▋        | 82/500 [11:02<1:00:00,  8.61s/it] 17%|█▋        | 83/500 [11:11<59:47,  8.60s/it]   17%|█▋        | 84/500 [11:19<59:19,  8.56s/it] 17%|█▋        | 85/500 [11:28<58:56,  8.52s/it] 17%|█▋        | 86/500 [11:36<58:27,  8.47s/it] 17%|█▋        | 87/500 [11:44<58:09,  8.45s/it] 17%|█▋        | 87/500 [11:44<55:45,  8.10s/it]
+wandb: - 0.010 MB of 0.010 MB uploadedwandb: \ 0.010 MB of 0.010 MB uploadedwandb: | 0.010 MB of 0.010 MB uploadedwandb: / 0.010 MB of 0.010 MB uploadedwandb: - 0.010 MB of 0.010 MB uploadedwandb: \ 0.010 MB of 0.010 MB uploadedwandb: | 0.010 MB of 0.010 MB uploadedwandb: / 0.010 MB of 0.594 MB uploadedwandb: - 0.019 MB of 0.594 MB uploadedwandb: \ 0.594 MB of 0.594 MB uploadedwandb: | 0.594 MB of 0.594 MB uploadedwandb: / 0.594 MB of 0.594 MB uploadedwandb: - 0.594 MB of 0.594 MB uploadedwandb:                                                                                
+wandb: 
+wandb: Run history:
+wandb:          epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:  learning_rate █████▇▇▇▇▆▆▆▆▆▅▅▅▅▄▄▄▄▄▃▃▃▃▂▂▂▂▂▂▂▂▂▁▁▁▁
+wandb: train_accuracy ▁▁▅▆▇▇▇█████████████████████████████████
+wandb:     train_loss ▇█▆▄▂▁▂▂▁▁▃▁▂▁▁▂▄▄▄▃▁▂▃▂▃▂▃▃▂▁▁▂▂▂▂▂▁▂▂▂
+wandb:   val_accuracy ▁▂▅▅▇▇▇▇▇▇▇▇█▇▇▇▇▇█▇▇█████▇███▇█▇▇██████
+wandb:       val_loss ▆▁▇▄▂▁▂█▁▆▂▁▁▃▄▁▄▂▁▁▁▁▁▁▁▅▄▁▁▁▁▃▅▁▄▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:          epoch 86
+wandb:  learning_rate 0.00043
+wandb: train_accuracy 0.99762
+wandb:     train_loss 0.17711
+wandb:   val_accuracy 0.91429
+wandb:       val_loss 0.02547
+wandb: 
+wandb: 🚀 View run dazzling-gorge-87 at: https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf/runs/fm2x6tdx
+wandb: ⭐️ View project at: https://wandb.ai/for-graduate-anaiis/Final0-deap-lowess-shuf
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20241005_235413-fm2x6tdx/logs
+Successfully processed s32
