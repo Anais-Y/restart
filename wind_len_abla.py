@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="seed_iv_1021",
+    project="96-deap-topk-noshuf-lds",
     # track hyperparameters and run metadata
     config=vars(args)
 )
@@ -77,13 +77,13 @@ if not os.path.exists(args.save):
     os.makedirs(args.save)
 init_seed(args.seed)  # 确保实验结果可以复现
 constructed = construct_graphs(args.data, args.dataset, args.window_length, args.strides)
-constructed_train, constructed_test = split_data(constructed, test_ratio=0.4, random_flag=False)
+constructed_train, constructed_test = split_data(constructed, test_ratio=0.2, random_flag=True)
 train_set = MultiBandDataset(constructed_train)
 tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
 test_set = MultiBandDataset(constructed_test)
 te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
 model_parameters_init(model)  # init parameters of model

@@ -4,7 +4,7 @@ from torch.nn import BatchNorm1d
 from torch_geometric.nn import GATConv, global_mean_pool, TopKPooling
 from torch_geometric.data import Dataset, DataLoader
 import torch.nn.functional as F
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import numpy as np
 
 
@@ -16,6 +16,7 @@ class GAT(nn.Module):
         # self.conv3 = GATConv(hidden_dim * num_heads, num_classes, heads=1, concat=False, dropout=dropout_disac)
         self.bn1 = BatchNorm1d(num_node_features)
         self.bn2 = BatchNorm1d(hidden_dim * num_heads)
+        # 使用TopKPooling，保留50%节点
         self.pool1 = TopKPooling(hidden_dim * num_heads, ratio=0.5)
         self.pool2 = TopKPooling(num_classes, ratio=0.5)
 
@@ -25,8 +26,8 @@ class GAT(nn.Module):
         # 第一层GAT卷积
         # x = F.dropout(x, p=0.6, training=self.training)
         x = self.bn1(x)
-        x_save, _tuple = self.conv1(x, edge_index, return_attention_weights=True)
-        x = F.relu(x_save)
+        x = self.conv1(x, edge_index)
+        x = F.relu(x)
 
         x, edge_index, _, batch, _, _ = self.pool1(x, edge_index, batch=batch)
 
@@ -37,12 +38,11 @@ class GAT(nn.Module):
         x = F.gelu(x)
 
         x, edge_index, _, batch, _, _ = self.pool2(x, edge_index, batch=batch)
-
         # x = self.conv3(x, edge_index)
         # 全局平均池化
         x = global_mean_pool(x, batch)
 
-        return F.log_softmax(x, dim=1), x_save
+        return F.log_softmax(x, dim=1)
 
 
 class FusionModel(nn.Module):
@@ -58,12 +58,6 @@ class FusionModel(nn.Module):
                              dropout_disac=dropout_disac, num_classes=num_classes)
         self.GAT_gamma = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
                              dropout_disac=dropout_disac, num_classes=num_classes)
-        attn_weight_names = ['gamma', 'theta', 'beta', 'alpha', 'delta', 'de']
-        for name in attn_weight_names:
-            setattr(self, f'attn_weight_{name}', None)
-        self.edge_index = None
-        self.x_feature = None
-
         self.dataset = dataset
         if self.dataset == "DEAP":
             self.GAT_de = GAT(num_node_features=4, hidden_dim=hidden_dim, num_heads=num_heads,
@@ -78,32 +72,17 @@ class FusionModel(nn.Module):
         nn.init.kaiming_uniform_(self.fusion.weight, nonlinearity='relu')
 
     def forward(self, data):
-        x_alpha, _tuple_alpha = self.GAT_alpha(data['alpha'])
-        x_beta, _tuple_beta = self.GAT_beta(data['beta'])
-        x_theta, _tuple_theta = self.GAT_theta(data['theta'])
-        x_gamma, _tuple_gamma = self.GAT_gamma(data['gamma'])
+        x_alpha = self.GAT_alpha(data['alpha'])
+        x_beta = self.GAT_beta(data['beta'])
+        x_gamma = self.GAT_theta(data['theta'])
+        x_theta = self.GAT_gamma(data['gamma'])
         if self.dataset == "DEAP":
-            x_de, _tuple_de = self.GAT_de(data['de'])
+            x_de = self.GAT_de(data['de'])
             x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
-            self.attn_weight_gamma = _tuple_gamma[1]
-            self.attn_weight_theta = _tuple_theta[1]
-            self.attn_weight_beta = _tuple_beta[1]
-            self.attn_weight_alpha = _tuple_alpha[1]
-            self.attn_weight_de = _tuple_de[1]
-            self.edge_index = _tuple_gamma[0]
-            self.x_feature = x_concat
         elif self.dataset == "SEED":
-            x_delta, x_save = self.GAT_beta(data['beta'])
-            x_de, _tuple_de = self.GAT_de(data['de'])
-            self.attn_weight_gamma = _tuple_gamma[1]
-            self.attn_weight_theta = _tuple_theta[1]
-            self.attn_weight_beta = _tuple_beta[1]
-            self.attn_weight_alpha = _tuple_alpha[1]
-            # self.attn_weight_delta = _tuple_delta[1]
-            self.attn_weight_de = _tuple_de[1]
-            self.edge_index = _tuple_gamma[0]
+            x_delta = self.GAT_delta(data['delta'])
+            x_de = self.GAT_de(data['de'])
             x_concat = torch.cat((x_delta, x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
-            self.x_feature = x_concat
         else:
             print('[Attention]!!!')
             x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta), dim=1)
@@ -127,14 +106,18 @@ class MultiBandDataset(Dataset):
         label = self.constructed['label'][idx]
         if not isinstance(label, torch.Tensor):
             label = torch.tensor(label, dtype=torch.long)
+        # for key, value in sample.items():
+        #     if isinstance(value, np.ndarray):
+        #         sample[key] = torch.tensor(value)
+        #         print(key)
         sample['label'] = label
         return sample
 
 
-def train(model, tr_loader, optimizer, criterion, device, max_grad):
+def train(model, tr_loader, optimizer, scheduler, criterion, device, max_grad):
     model.train()
     for training_data in tr_loader:
-        # print(data)
+        # print("training_data", training_data)
         # print('train labels:', training_data['label'])
         labels = training_data['label'].to(device)
         training_data = {key: value.to(device) for key, value in training_data.items() if key != 'label'}
@@ -145,6 +128,7 @@ def train(model, tr_loader, optimizer, criterion, device, max_grad):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad)
         optimizer.step()
+    scheduler.step()
 
 
 def evaluate(model, data_loader, criterion, device):
@@ -153,32 +137,15 @@ def evaluate(model, data_loader, criterion, device):
     all_labels = []
     acc = {}
     with torch.no_grad():
-        for i, testing_data in enumerate(data_loader):
+        for testing_data in data_loader:
             # print('test labels:', testing_data['label'])
             labels = testing_data['label'].to(device)
             testing_data = {key: value.to(device) for key, value in testing_data.items() if key != 'label'}
             outputs = model(testing_data)
-            # print(outputs, model.attn_weight)
-            torch.save(model.x_feature, f'/data/Anaiis/garage/vis_data/s06/fusion_{i}.pt')
-            # print(model.x_feature.shape)
-            # bands = ['gamma', 'theta', 'beta', 'alpha', 'de']
-            # for band in bands:
-            #     # 使用 getattr 动态获取 model 的 attn_weight 属性
-            #     attn_weight = getattr(model, f'attn_weight_{band}')
-                
-                # 动态生成文件路径
-            #     torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/1_20131027/attn_weight_l1{band}_{i}.pt')
-            # # torch.save(model.attn_weight, f'/data/Anaiis/garage/vis_data/6_20130712/attn_weight_l1gamma_{i}.pt')
-            # torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/1_20131027/edge_index_l1_{i}.pt')
-            torch.save(labels, f'/data/Anaiis/garage/vis_data/s06/labels_{i}.pt')
-            # if labels != torch.load(f'/data/Anaiis/garage/vis_data/1_20131027/labels_{i}.pt').item():
-                # print("attn!")
             loss = criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
             all_preds.extend(predicted.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-        np.save("/data/Anaiis/garage/vis_data/s06/labels0924.npy", all_labels)
-        print("total samples:", i)
     
     # print(all_preds, all_labels)
     acc["all"] = np.sum(np.array(all_preds)==np.array(all_labels))/len(all_labels)
@@ -188,9 +155,9 @@ def evaluate(model, data_loader, criterion, device):
     predict_v = np.where(np.array(all_preds) % 2 == 0, 0, 1)
     label_v = np.where(np.array(all_labels) % 2 == 0, 0, 1)
     acc["valence"] = sum(predict_v==label_v)/len(label_a)
-    accuracy = accuracy_score(all_labels, all_preds)
-    f1 = f1_score(all_labels, all_preds, average='weighted')
-    return accuracy, f1, loss  # , acc, all_labels, all_preds
+    cm = confusion_matrix(all_labels, all_preds)
+    f1 = f1_score(all_labels, all_preds, average='weighted') 
+    return acc, f1, cm  # , acc, all_labels, all_preds
 
 
 if __name__ == '__main__':
