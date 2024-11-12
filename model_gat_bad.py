@@ -99,10 +99,10 @@ class MultiBandDataset(Dataset):
         return sample
 
 
-def train(model, tr_loader, optimizer, criterion, device, max_grad):
+def train(model, tr_loader, optimizer, scheduler, criterion, device, max_grad):
     model.train()
     for training_data in tr_loader:
-        # print(data)
+        # print("training_data", training_data)
         # print('train labels:', training_data['label'])
         labels = training_data['label'].to(device)
         training_data = {key: value.to(device) for key, value in training_data.items() if key != 'label'}
@@ -113,6 +113,7 @@ def train(model, tr_loader, optimizer, criterion, device, max_grad):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad)
         optimizer.step()
+    scheduler.step()
 
 
 def evaluate(model, data_loader, criterion, device):

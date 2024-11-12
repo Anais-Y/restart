@@ -1,6 +1,6 @@
 import argparse
 import os
-from model_gat_seed import MultiBandDataset, FusionModel, train, evaluate
+from model_gat_abla1 import MultiBandDataset, FusionModel, train, evaluate
 from torch_geometric.data import DataLoader
 from utils_de import *
 import torch
@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="Step1-deap-lowess-shuf",
+    project="Dense-seed-50-shuf",
     # track hyperparameters and run metadata
     config=vars(args)
 )
@@ -83,7 +83,7 @@ tr_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
 test_set = MultiBandDataset(constructed_test)
 te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
 model_parameters_init(model)  # init parameters of model

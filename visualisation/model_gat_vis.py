@@ -42,8 +42,7 @@ class GAT(nn.Module):
         # 全局平均池化
         x = global_mean_pool(x, batch)
 
-        return F.log_softmax(x, dim=1), x_save
-
+        return F.log_softmax(x, dim=1), _tuple
 
 class FusionModel(nn.Module):
     def __init__(self, num_node_features, hidden_dim, num_heads, dropout_disac, num_classes, dataset):
@@ -159,25 +158,25 @@ def evaluate(model, data_loader, criterion, device):
             testing_data = {key: value.to(device) for key, value in testing_data.items() if key != 'label'}
             outputs = model(testing_data)
             # print(outputs, model.attn_weight)
-            torch.save(model.x_feature, f'/data/Anaiis/garage/vis_data/s06/fusion_{i}.pt')
+            torch.save(model.x_feature, f'/data/Anaiis/garage/vis_data/15_20131105/fusion_{i}.pt')
             # print(model.x_feature.shape)
-            # bands = ['gamma', 'theta', 'beta', 'alpha', 'de']
-            # for band in bands:
-            #     # 使用 getattr 动态获取 model 的 attn_weight 属性
-            #     attn_weight = getattr(model, f'attn_weight_{band}')
+            bands = ['gamma', 'theta', 'beta', 'alpha', 'de']
+            for band in bands:
+                # 使用 getattr 动态获取 model 的 attn_weight 属性
+                attn_weight = getattr(model, f'attn_weight_{band}')
                 
                 # 动态生成文件路径
-            #     torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/1_20131027/attn_weight_l1{band}_{i}.pt')
+                torch.save(attn_weight, f'/data/Anaiis/garage/vis_data/15_20131105/attn_weight_l1{band}_{i}.pt')
             # # torch.save(model.attn_weight, f'/data/Anaiis/garage/vis_data/6_20130712/attn_weight_l1gamma_{i}.pt')
-            # torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/1_20131027/edge_index_l1_{i}.pt')
-            torch.save(labels, f'/data/Anaiis/garage/vis_data/s06/labels_{i}.pt')
-            # if labels != torch.load(f'/data/Anaiis/garage/vis_data/1_20131027/labels_{i}.pt').item():
-                # print("attn!")
+            torch.save(model.edge_index, f'/data/Anaiis/garage/vis_data/15_20131105/edge_index_l1_{i}.pt')
+            torch.save(labels, f'/data/Anaiis/garage/vis_data/15_20131105/labels_{i}.pt')
+            if labels != torch.load(f'/data/Anaiis/garage/vis_data/15_20131105/labels_{i}.pt').item():
+                print("attn!")
             loss = criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
             all_preds.extend(predicted.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-        np.save("/data/Anaiis/garage/vis_data/s06/labels0924.npy", all_labels)
+        # np.save("/data/Anaiis/garage/vis_data/s25/labels0924.npy", all_labels)
         print("total samples:", i)
     
     # print(all_preds, all_labels)

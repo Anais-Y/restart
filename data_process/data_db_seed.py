@@ -5,6 +5,7 @@ from scipy.io import loadmat
 from scipy.signal import welch, butter, lfilter
 from pykalman import KalmanFilter
 import math
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 
 # Deap description里没有提到降噪，只说了去artifacts，但其实带通滤波和ICA去artifacts已经包含一部分降噪功能了
@@ -90,28 +91,39 @@ def compute_DE(signal):
     return math.log(2 * math.pi * math.e * variance + 1e-6) / 2
 
 
-def compute_featuresDE(filtered_data, baseline, num_windows):  # num_windows: 每s要分成多少个windows
-    data = filtered_data[:, :, 3 * 128:, :].transpose((0, 2, 1, 3))  # 40 7680 32 4
-    videos, t, chans, bands = data.shape
-    features = np.zeros((videos, 60 * num_windows, chans, bands))
-    for video in range(videos):
+def compute_featuresDE(filtered_data):  # num_windows: 每s要分成多少个windows 
+    #  62, 5, samples, window_len
+    chans, bands, samples, window_len = filtered_data.shape
+    features = np.zeros((chans, bands, samples))
+    for sample in range(samples):
         for chan in range(chans):
             for band in range(bands):
-                trial = data[video, :, chan, band]
-                step_size = 14  # 差不多是109ms
-                window_size = len(trial) - (60 * num_windows - 1) * step_size  #
-                # print('overlap:', window_size-step_size, '; window_size:', window_size)
-                for i in range(60 * num_windows):
-                    DEfeature = compute_DE(trial[i * step_size:i * step_size + window_size])
-                    normed = DEfeature - baseline[video, chan, band]
-                    features[video, i, chan, band] = normed
-    return features
+                trial = filtered_data[chan, band, sample, :]
+                DEfeature = compute_DE(trial)
+                features[chan, band, sample] = DEfeature
+    features = features.transpose((2, 0, 1))  # sample, chan, band
+    max_values = np.max(features, axis=-1, keepdims=True)
+    normalized_feats = features / max_values
+    return normalized_feats
+
+
+def filterLDS(features):  # num_windows: 每s要分成多少个windows
+    i, chan, band = features.shape
+    # feat_continue = np.reshape(features, (-1, chan, band))  # seg, i, chan, band
+    tmp = np.zeros(features.shape)
+    x = np.linspace(0, 1, i)
+    for sing_chan in range(chan):
+        for sing_band in range(band):
+            signal = features[:, sing_chan, sing_band]
+            smoothed_signal = lowess(signal, x, frac=0.8)
+            tmp[:, sing_chan, sing_band] = smoothed_signal[:, 1]
+    return tmp
 
 
 if __name__ == '__main__':
-    dataset_path = '../Dataset/SEED/SEED/Preprocessed_EEG'
-    dataset_path2 = '../Dataset/SEED/SEED/ExtractedFeatures'
-    window_len = 200
+    dataset_path = '/home/micro/Anaiis/Dataset/SEED/SEED/Preprocessed_EEG'
+    dataset_path2 = '/home/micro/Anaiis/Dataset/SEED/SEED/ExtractedFeatures'
+    window_len = 50
     people_name = ['1_20131027', '1_20131030', '1_20131107',
                    '6_20130712', '6_20131016', '6_20131113',
                    '7_20131027', '7_20131030', '7_20131106',
@@ -143,14 +155,14 @@ if __name__ == '__main__':
         label = [1, 0, -1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 0, 1, -1]
         # [1, 0, -1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 0, 1, -1] 标签没错
         smooth = False
-        save_folder = f'./Data/SEED/len_{window_len}/smooth_{smooth}/{file}'
+        save_folder = f'/data/Anaiis/Data/SEED/len_{window_len}/smooth_{smooth}/{file}'
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
         for trial in range(15):
             tmp_trial = data[short_name[num] + '_eeg' + str(trial + 1)]
-            tmp_de_feat = de_data['de_LDS' + str(trial+1)]
-            # reshape de
-            tmp_de_feat = tmp_de_feat.transpose((1, 0, 2))  # sample, 62, 5
+            # tmp_de_feat = de_data['de_LDS' + str(trial+1)]
+            # # reshape de
+            # tmp_de_feat = tmp_de_feat.transpose((1, 0, 2))  # sample, 62, 5
             # 带通滤波
             filtered = filter_data(tmp_trial)  # 62, 5, time
             if smooth:
@@ -159,6 +171,9 @@ if __name__ == '__main__':
             trial_len = len(tmp_trial[1])
             num_samples = trial_len // window_len
             split_filter = np.reshape(filtered[:, :, :num_samples * window_len], (62, 5, num_samples, window_len))
+            tmp_de_feat = compute_featuresDE(split_filter)
+            print("tmp_de_feat", tmp_de_feat.shape)
+            tmp_de_feat = filterLDS(tmp_de_feat)
             # 62, 5, samples, window_len
             split_filter = split_filter.transpose((2, 0, 1, 3))  # (sample, 62, 5, 20)
             # all_label.append([label[trial]] * num_samples)

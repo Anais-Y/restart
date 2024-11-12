@@ -4,13 +4,13 @@ import configparser
 import tqdm
 import matplotlib.pyplot as plt
 from torch import nn
-from model_gat_seed import MultiBandDataset, FusionModel, train, evaluate
+from model_gat import MultiBandDataset, FusionModel, train, evaluate
 from torch_geometric.loader import DataLoader
 from utils_de import *
 from torch.optim.lr_scheduler import StepLR
 
-DATASET = 'SEED'
-config_file = f'./configs/{DATASET}/iv.conf'
+DATASET = 'DEAP'
+config_file = f'./configs/{DATASET}/s01.conf'
 config = configparser.ConfigParser()
 config.read(config_file)
 parser = argparse.ArgumentParser(description='arguments')

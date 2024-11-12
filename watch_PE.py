@@ -68,7 +68,7 @@ args = parser.parse_args(remaining_argv)
 
 wandb.init(
     # set the wandb project where this run will be logged
-    project="seed_iv_1021",
+    project="len50_seed_step1",
     # track hyperparameters and run metadata
     config=vars(args)
 )
@@ -105,10 +105,13 @@ te_acc_max = 0
 for epoch in tqdm.tqdm(range(num_epochs)):
     if wait >= args.patience:
         log_string(log_file, f'early stop at epoch: {epoch:04d}')
+        state = {'state_dict': model.state_dict(), 'hyperparams': vars(args)}
+        torch.save(state,
+                   args.save + "exp_" + args.expid + "_" + str(round(te_loss_min, 2)) + "_final_model.pth")
         break
     train(model, tr_loader, optimizer, scheduler, criterion, device, args.max_grad_norm)
-    train_acc, train_f1, tr_loss = evaluate(model, tr_loader, criterion, device)
-    test_acc, test_f1, te_loss = evaluate(model, te_loader, criterion, device)
+    train_acc, train_f1, tr_loss, _ = evaluate(model, tr_loader, criterion, device)
+    test_acc, test_f1, te_loss, cm = evaluate(model, te_loader, criterion, device)
     infos = f'Epoch {epoch + 1}, Train Acc: {train_acc:.2f}, Train F1: {train_f1:.2f}, ' \
             f'Test Acc: {test_acc:.2f},Test F1: {test_f1:.2f}, '
     log_string(log_file, infos)
@@ -117,8 +120,16 @@ for epoch in tqdm.tqdm(range(num_epochs)):
 
     for name, param in model.named_parameters():
         if param.grad is not None:
-            wandb.log({f"gradients/{name}": wandb.Histogram(param.grad.cpu().numpy())})
-            wandb.log({f"parameters/{name}": wandb.Histogram(param.data.cpu().numpy())})
+            grad = param.grad.cpu().numpy()
+            if not (np.isnan(grad).any() or np.isinf(grad).any() or np.isnan(param.data.cpu().numpy()).any()):
+                wandb.log({f"gradients/{name}": wandb.Histogram(grad)})
+                wandb.log({f"parameters/{name}": wandb.Histogram(param.data.cpu().numpy())})
+            else:
+                print(f"Warning: {name} contains NaN or Inf, skipping logging.")
+                state = {'state_dict': model.state_dict(), 'hyperparams': vars(args)}
+                torch.save(state,
+                   args.save + "exp_" + args.expid + "_" + str(round(te_loss_min, 2)) + "_final_model_g.pth")
+            
 
     if te_loss <= te_loss_min:
         info1 = f'val loss decrease from {te_loss_min:.4f} to {te_loss:.4f}, ' \
@@ -149,7 +160,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if (epoch+1) / print_every == 0:
         print(infos)
 
-final_info =f'Test Acc: {te_acc_max}'
+final_info =f'Test Acc: {te_acc_max}, cm: {cm}'
 log_string(log_file, final_info)
 print(final_info)
 wandb.watch(model, criterion, log='all', log_freq=10)

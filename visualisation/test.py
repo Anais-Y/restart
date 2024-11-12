@@ -4,7 +4,7 @@ import configparser
 import tqdm
 import matplotlib.pyplot as plt
 from torch import nn
-from model_gat_seed import MultiBandDataset, FusionModel, evaluate
+from model_gat_vis import MultiBandDataset, FusionModel, train, evaluate
 from torch_geometric.data import DataLoader
 import sys
 import os
@@ -14,13 +14,8 @@ sys.path.append(parent_dir)
 from utils_de import *
 from torch.optim.lr_scheduler import StepLR
 
-
-def log_string2(log_file, string):
-    with open(log_file, 'a') as file:  # 使用追加模式打开文件
-        file.write(string + '\n')
-
-# DATASET = 'SEED'
-config_file = f'./s01.conf'
+DATASET = 'SEED'
+config_file = f'./1.conf'
 config = configparser.ConfigParser()
 config.read(config_file)
 parser = argparse.ArgumentParser(description='arguments')
@@ -55,8 +50,6 @@ parser.add_argument('--expid', type=int, default=config['train']['expid'], help=
 parser.add_argument('--desc', type=str, default=config['train']['description'], help='实验说明')
 parser.add_argument('--max_grad_norm', type=float, default=config['train']['max_grad_norm'], help="梯度阈值")
 parser.add_argument('--log_file', default=config['train']['log_file'], help='log file')
-parser.add_argument('--ckpt', default=config['train']['ckpt'], help='ckpt file')
-
 args = parser.parse_args()
 
 if not os.path.exists(args.save):
@@ -65,12 +58,12 @@ init_seed(args.seed)  # 确保实验结果可以复现
 constructed = construct_graphs(args.data, args.dataset, args.window_length, args.strides)
 test_set = MultiBandDataset(constructed)
 print(len(test_set))
-te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
+te_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False)
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = FusionModel(num_node_features=args.window_length, hidden_dim=args.hidden_dim, num_heads=args.num_heads,
                     dropout_disac=args.dropout_disactive, num_classes=args.cls, dataset=args.dataset).to(device)
-ckpt = torch.load(args.ckpt, map_location=device)
+ckpt = torch.load('/data/Anaiis/garage/seed_shuf/exp_21-1024_0.0_best_model.pth')
 model.load_state_dict(ckpt['state_dict'], strict=False)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay_rate)
@@ -80,16 +73,15 @@ scheduler = StepLR(optimizer, step_size=args.lr_decay_every, gamma=args.lr_decay
 num_epochs = args.epochs
 print_every = args.print_every
 log_file = open(args.log_file+args.desc, 'w')
-# log_string2(log_file, str(args))
-# log_string2(log_file, "模型可训练参数: {:,}".format(count_parameters(model)))
-# log_string2(log_file, 'GPU使用情况:{:,}'.format(
-#     torch.cuda.max_memory_allocated() / 1000000 if torch.cuda.is_available() else 0))
+log_string(log_file, str(args))
+log_string(log_file, "模型可训练参数: {:,}".format(count_parameters(model)))
+log_string(log_file, 'GPU使用情况:{:,}'.format(
+    torch.cuda.max_memory_allocated() / 1000000 if torch.cuda.is_available() else 0))
 
 te_loss_min = float('inf')
 
-acc, f1, cm = evaluate(model, te_loader, criterion, device)
-infos = f'Test Acc: {acc["all"]:.2f}, {acc["valence"]:.2f}, {acc["arousal"]:.2f}, Test F1: {f1:.2f}'
-log_string2("/data/Anaiis/anti_overfit/result1021.txt", infos)
-infos = f'{cm}'
-log_string2("/data/Anaiis/anti_overfit/result1021.txt", infos)
+test_acc, test_f1, te_loss = evaluate(model, te_loader, criterion, device)
+infos = f'Test Acc: {test_acc:.2f}, Test F1: {test_f1:.2f}'
+log_string(log_file, infos)
+print(infos)
 

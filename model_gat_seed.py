@@ -4,8 +4,10 @@ from torch.nn import BatchNorm1d
 from torch_geometric.nn import GATConv, global_mean_pool, TopKPooling
 from torch_geometric.data import Dataset, DataLoader
 import torch.nn.functional as F
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import numpy as np
+from utils_de import *
+from thop import profile
 
 
 class GAT(nn.Module):
@@ -123,6 +125,8 @@ def train(model, tr_loader, optimizer, scheduler, criterion, device, max_grad):
         training_data = {key: value.to(device) for key, value in training_data.items() if key != 'label'}
         optimizer.zero_grad()  # 清空梯度
         out = model(training_data)  # 前向传播
+        # flops, params = profile(model, inputs=(training_data, ))
+        # print(flops, params)
         # print(out.shape, labels.shape)
         loss = criterion(out, labels)
         loss.backward()
@@ -156,8 +160,9 @@ def evaluate(model, data_loader, criterion, device):
     label_v = np.where(np.array(all_labels) % 2 == 0, 0, 1)
     acc["valence"] = sum(predict_v==label_v)/len(label_a)
     accuracy = accuracy_score(all_labels, all_preds)
+    cm = confusion_matrix(all_labels, all_preds)
     f1 = f1_score(all_labels, all_preds, average='weighted')
-    return accuracy, f1, loss  # , acc, all_labels, all_preds
+    return accuracy, f1, loss, cm
 
 
 if __name__ == '__main__':
@@ -168,6 +173,7 @@ if __name__ == '__main__':
                 print_model_details(module, indent + 1)
 
 
-    model = FusionModel(num_node_features=12, hidden_dim=128, num_heads=16, dropout_disac=0.6, num_classes=4,
+    model = FusionModel(num_node_features=96, hidden_dim=128, num_heads=4, dropout_disac=0.6, num_classes=4,
                         dataset='DEAP')
     print_model_details(model)
+    print("模型可训练参数: {:,}".format(count_parameters(model)))

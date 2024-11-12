@@ -6,6 +6,7 @@ from scipy.signal import welch, butter, lfilter
 from pykalman import KalmanFilter
 import math
 import re
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 
 # Deap description里没有提到降噪，只说了去artifacts，但其实带通滤波和ICA去artifacts已经包含一部分降噪功能了
@@ -107,6 +108,19 @@ def compute_featuresDE(filtered_data):  # num_windows: 每s要分成多少个win
     return normalized_feats
 
 
+def filterLDS(features):  # num_windows: 每s要分成多少个windows
+    i, chan, band = features.shape
+    # feat_continue = np.reshape(features, (-1, chan, band))  # seg, i, chan, band
+    tmp = np.zeros(features.shape)
+    x = np.linspace(0, 1, i)
+    for sing_chan in range(chan):
+        for sing_band in range(band):
+            signal = features[:, sing_chan, sing_band]
+            smoothed_signal = lowess(signal, x, frac=0.8)
+            tmp[:, sing_chan, sing_band] = smoothed_signal[:, 1]
+    return tmp
+
+
 if __name__ == '__main__':
     raw_path = '/data/Anaiis/Data/SEED_IV/eeg_raw_data/1'
     feats_path = '/data/Anaiis/Data/SEED_IV/eeg_feature_smooth/1'
@@ -140,6 +154,8 @@ if __name__ == '__main__':
             split_filter = np.reshape(filtered[:, :, :num_samples * window_len], (62, 5, num_samples, window_len))
             # 62, 5, samples, window_len
             tmp_de_feat = compute_featuresDE(split_filter)
+            print("tmp_de_feat", tmp_de_feat.shape)
+            tmp_de_feat = filterLDS(tmp_de_feat)
             split_filter = split_filter.transpose((2, 0, 1, 3))  # (sample, 62, 5, 20)
             # all_label.append([label[trial]] * num_samples)
             if trial == 0:

@@ -42,45 +42,45 @@ class GAT(nn.Module):
 class FusionModel(nn.Module):
     def __init__(self, num_node_features, hidden_dim, num_heads, dropout_disac, num_classes, dataset):
         super(FusionModel, self).__init__()
-        # self.GAT_delta = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
-        #                      dropout_disac=dropout_disac, num_classes=num_classes)
-        # self.GAT_alpha = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
-        #                      dropout_disac=dropout_disac, num_classes=num_classes)
-        # self.GAT_beta = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
-        #                     dropout_disac=dropout_disac, num_classes=num_classes)
-        # self.GAT_theta = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
-        #                      dropout_disac=dropout_disac, num_classes=num_classes)
-        # self.GAT_gamma = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
-        #                      dropout_disac=dropout_disac, num_classes=num_classes)
+        self.GAT_delta = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
+                             dropout_disac=dropout_disac, num_classes=num_classes)
+        self.GAT_alpha = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
+                             dropout_disac=dropout_disac, num_classes=num_classes)
+        self.GAT_beta = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
+                            dropout_disac=dropout_disac, num_classes=num_classes)
+        self.GAT_theta = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
+                             dropout_disac=dropout_disac, num_classes=num_classes)
+        self.GAT_gamma = GAT(num_node_features=num_node_features, hidden_dim=hidden_dim, num_heads=num_heads,
+                             dropout_disac=dropout_disac, num_classes=num_classes)
         self.dataset = dataset
         if self.dataset == "DEAP":
             self.GAT_de = GAT(num_node_features=4, hidden_dim=hidden_dim, num_heads=num_heads,
                              dropout_disac=dropout_disac, num_classes=num_classes)
-            self.fusion = nn.Linear(num_classes, num_classes, bias=True)
+            self.fusion = nn.Linear(5 * num_classes, num_classes, bias=True)
         elif self.dataset == "SEED":
             self.GAT_de = GAT(num_node_features=5, hidden_dim=hidden_dim, num_heads=num_heads,
                              dropout_disac=dropout_disac, num_classes=num_classes)
-            self.fusion = nn.Linear(num_classes, num_classes, bias=True)
+            self.fusion = nn.Linear(6 * num_classes, num_classes, bias=True)
         else:
             raise ValueError("Please give a dataset")
         nn.init.kaiming_uniform_(self.fusion.weight, nonlinearity='relu')
 
     def forward(self, data):
-        # x_alpha = self.GAT_alpha(data['alpha'])
-        # x_beta = self.GAT_beta(data['beta'])
-        # x_gamma = self.GAT_theta(data['theta'])
-        # x_theta = self.GAT_gamma(data['gamma'])
+        x_alpha = self.GAT_alpha(data['alpha'])
+        x_beta = self.GAT_beta(data['beta'])
+        x_gamma = self.GAT_theta(data['theta'])
+        x_theta = self.GAT_gamma(data['gamma'])
         if self.dataset == "DEAP":
             x_de = self.GAT_de(data['de'])
-            # x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
+            x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
         elif self.dataset == "SEED":
-            # x_delta = self.GAT_delta(data['delta'])
+            x_delta = self.GAT_delta(data['delta'])
             x_de = self.GAT_de(data['de'])
-            # x_concat = torch.cat((x_delta, x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
+            x_concat = torch.cat((x_delta, x_alpha, x_beta, x_gamma, x_theta, x_de), dim=1)
         else:
             print('[Attention]!!!')
             # x_concat = torch.cat((x_alpha, x_beta, x_gamma, x_theta), dim=1)
-        x_out = self.fusion(x_de)
+        x_out = self.fusion(x_concat)
 
         return F.relu(x_out)
 
