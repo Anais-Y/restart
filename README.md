@@ -1,8 +1,11 @@
 # **LISGA: 一种轻量级可解释的基于EEG的时空图注意力网络**
 
 这是我毕业论文第四章的代码，同时也是LISGA: A Lightweight Interpretable Spatiotemporal Graph
-Attention network for EEG-based Emotion Recognition这篇文章的源码。
+Attention network for EEG-based Emotion Recognition这篇文章(未发表）的源码。
 
+## Model Architecture
+
+![Model Architecture](./images/structure.pdf)
 
 ## **项目结构**
 
