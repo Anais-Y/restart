@@ -2,7 +2,7 @@
 
 这是我毕业论文第四章的代码，同时也是LISGA: A Lightweight Interpretable Spatiotemporal Graph
 Attention network for EEG-based Emotion Recognition这篇文章的源码。
----
+
 
 ## **项目结构**
 
