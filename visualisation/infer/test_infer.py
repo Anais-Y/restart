@@ -90,7 +90,7 @@ te_loss_min = float('inf')
 
 acc, f1, cm = evaluate(model, te_loader, criterion, device)
 infos = f'Test Acc: {acc["all"]:.2f}, {acc["valence"]:.2f}, {acc["arousal"]:.2f}, Test F1: {f1:.2f}'
-log_string2("/data/Anaiis/anti_overfit/visualisation/infer/result1021.txt", infos)
+log_string2("/data/Anaiis/anti_overfit/visualisation/infer/result1126.txt", infos)
 infos = f'{cm}'
-log_string2("/data/Anaiis/anti_overfit/visualisation/infer/result1021.txt", infos)
+log_string2("/data/Anaiis/anti_overfit/visualisation/infer/result1126.txt", infos)
 
